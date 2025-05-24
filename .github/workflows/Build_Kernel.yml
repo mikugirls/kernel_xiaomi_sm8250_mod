@@ -493,7 +493,7 @@ jobs:
               echo "🔧 设置自定义内核版本: $VERSION"
               sed -i "s/-dirty/-$VERSION/g" scripts/setlocalversion
           else
-              echo "🔧 使用默认版本后缀: -Yun"
+              echo "🔧 使用默认版本后缀"
               sed -i "s/-dirty//g" scripts/setlocalversion
           fi
 
