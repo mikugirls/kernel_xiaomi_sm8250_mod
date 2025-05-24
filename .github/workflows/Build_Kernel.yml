@@ -653,7 +653,7 @@ jobs:
       with:
         files: /home/runner/work/kernel_xiaomi_sm8250_mod/kernel_xiaomi_sm8250_mod/release/*.zip
         name: ${{ github.event.inputs.kernel_version }}
-        tag_name: ${{ github.event.inputs.kernel_version }}
+        tag_name: ${{ env.NEW_TAG }}
         body: |
           ### 📱kernel build information | 内核构建信息
       
