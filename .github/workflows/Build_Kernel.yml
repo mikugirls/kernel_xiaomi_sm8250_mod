@@ -494,7 +494,7 @@ jobs:
               sed -i "s/-dirty/-$VERSION/g" scripts/setlocalversion
           else
               echo "🔧 使用默认版本后缀: -Yun"
-              sed -i "s/-dirty/g" scripts/setlocalversion
+              sed -i "s/-dirty//g" scripts/setlocalversion
           fi
 
           FULL_VERSION="$VERSION"
