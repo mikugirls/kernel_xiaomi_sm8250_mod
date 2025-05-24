@@ -10,6 +10,7 @@ on:
         description: 'target device (目标设备)'
         required: true
         type: choice
+        default: 'all'
         options:
           - 'lmi'
           - 'cmi'
@@ -235,7 +236,7 @@ jobs:
             cd $KERNEL_SOURCE
             echo 'source "utils/Kconfig"' >> "Kconfig"
             rm -rf utils
-            git clone https://github.com/cctv18/lxc-docker-support-for-android.git utils
+            git clone https://github.com/mikugirls/lxc-docker-support-for-android.git utils
  
             echo "CONFIG_DOCKER=y" >> arch/arm64/configs/${DEVICE}_defconfig
  
@@ -493,7 +494,7 @@ jobs:
               sed -i "s/-dirty/-$VERSION/g" scripts/setlocalversion
           else
               echo "🔧 使用默认版本后缀: -Yun"
-              sed -i "s/-dirty/-Yun/g" scripts/setlocalversion
+              sed -i "s/-dirty/g" scripts/setlocalversion
           fi
 
           FULL_VERSION="$VERSION"
