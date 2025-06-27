@@ -1152,7 +1152,7 @@ static struct mount *clone_mnt(struct mount *old, struct dentry *root,
 	bool is_current_ksu_domain = susfs_is_current_ksu_domain();
 	bool is_current_zygote_domain = susfs_is_current_zygote_domain();
 
-	/* - It is very important that we need to use CL_COPY_MNT_NS to identify whether 
+	/* - It is very important that we need to use CL_COPY_MNT_NS to identify whether
 	 *   the clone is a copy_tree() or single mount like called by __do_loopback()
 	 * - if caller process is KSU, consider the following situation:
 	 *     1. it is NOT doing unshare => call alloc_vfsmnt() to assign a new sus mnt_id
@@ -1582,7 +1582,7 @@ static void namespace_unlock(void)
 	if (likely(hlist_empty(&head)))
 		return;
 
-	synchronize_rcu_expedited();
+	synchronize_rcu();
 
 	group_pin_kill(&head);
 }
@@ -3277,7 +3277,7 @@ struct mnt_namespace *copy_mnt_ns(unsigned long flags, struct mnt_namespace *ns,
 	// q->mnt.susfs_mnt_id_backup -> original mnt_id
 	// q->mnt_id -> will be modified to the fake mnt_id
 
-	// Here We are only interested in processes of which original mnt namespace belongs to zygote 
+	// Here We are only interested in processes of which original mnt namespace belongs to zygote
 	// Also we just make use of existing 'q' mount pointer, no need to delcare extra mount pointer
 	if (is_zygote_pid) {
 		last_entry_mnt_id = list_first_entry(&new_ns->list, struct mount, mnt_list)->mnt_id;
