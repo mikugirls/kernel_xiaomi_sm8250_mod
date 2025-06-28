@@ -1634,26 +1634,6 @@ static struct dentry *lookup_dcache(const struct qstr *name,
 	return dentry;
 }
 
-#ifdef CONFIG_KSU_SUSFS_SUS_PATH
-static inline int susfs_inode_permission(struct inode *inode, unsigned int flags) {
-	int error;
-	int mask = MAY_EXEC;
-	if (flags & (LOOKUP_CREATE | LOOKUP_EXCL | LOOKUP_RENAME_TARGET)) {
-		mask |= MAY_WRITE;
-	}
-	if (flags & LOOKUP_OPEN) {
-		mask |= MAY_OPEN;
-	}
-	if (flags & LOOKUP_RCU) {
-		mask |= MAY_NOT_BLOCK;
-	}
-	error = inode_permission(inode, mask);
-	if (error) {
-		return error;
-	}
-	return -ENOENT;
-}
-#endif
 /*
  * Parent directory has inode locked exclusive.  This is one
  * and only case when ->lookup() gets called on non in-lookup
@@ -2619,9 +2599,6 @@ static int path_lookupat(struct nameidata *nd, unsigned flags, struct path *path
 {
 	const char *s = path_init(nd, flags);
 	int err;
-#ifdef CONFIG_KSU_SUSFS_SUS_PATH
-	struct dentry *dentry;
-#endif
 
 	if (unlikely(flags & LOOKUP_DOWN) && !IS_ERR(s)) {
 		err = handle_lookup_down(nd);
@@ -2633,18 +2610,6 @@ static int path_lookupat(struct nameidata *nd, unsigned flags, struct path *path
 		&& ((err = lookup_last(nd)) > 0)) {
 		s = trailing_symlink(nd);
 	}
-#ifdef CONFIG_KSU_SUSFS_SUS_PATH
-	dentry = nd->path.dentry;
-	if (!err && dentry && !IS_ERR(dentry) && dentry->d_inode) {
-		if (susfs_is_inode_sus_path(dentry->d_inode)) {
-			err = susfs_inode_permission(dentry->d_parent->d_inode, nd->flags);
-			if (!err) {
-				err = -ENOENT;
-			}
-			goto orig_flow;
-		}
-	}
-#endif
 	if (!err)
 		err = complete_walk(nd);
 
@@ -2656,9 +2621,6 @@ static int path_lookupat(struct nameidata *nd, unsigned flags, struct path *path
 		nd->path.mnt = NULL;
 		nd->path.dentry = NULL;
 	}
-#ifdef CONFIG_KSU_SUSFS_SUS_PATH
-orig_flow:
-#endif
 	terminate_walk(nd);
 	return err;
 }
@@ -2694,18 +2656,6 @@ static int path_parentat(struct nameidata *nd, unsigned flags,
 {
 	const char *s = path_init(nd, flags);
 	int err = link_path_walk(s, nd);
-#ifdef CONFIG_KSU_SUSFS_SUS_PATH
-	struct dentry *dentry = nd->path.dentry;
-	if (!err && dentry && !IS_ERR(dentry) && dentry->d_inode) {
-		if (dentry->d_inode && susfs_is_inode_sus_path(dentry->d_inode)) {
-			err = susfs_inode_permission(dentry->d_parent->d_inode, nd->flags);
-			if (!err) {
-				err = -ENOENT;
-			}
-			goto orig_flow;
-		}
-	}
-#endif
 	if (!err)
 		err = complete_walk(nd);
 	if (!err) {
@@ -3703,17 +3653,6 @@ static int do_last(struct nameidata *nd,
 			return error;
 		goto finish_open;
 	}
-#ifdef CONFIG_KSU_SUSFS_SUS_PATH
-	if (dir->d_inode) {
-		if (susfs_is_inode_sus_path(dir->d_inode)) {
-			int err = susfs_inode_permission(dir->d_parent->d_inode, nd->flags);
-			if (err) {
-				return err;
-			}
-			return -ENOENT;
-		}
-	}
-#endif
 
 	if (!(open_flag & O_CREAT)) {
 		if (nd->last.name[nd->last.len])
@@ -3723,17 +3662,6 @@ static int do_last(struct nameidata *nd,
 		if (likely(error > 0))
 			goto finish_lookup;
 
-#ifdef CONFIG_KSU_SUSFS_SUS_PATH
-		if (path.dentry && path.dentry->d_inode) {
-			if (susfs_is_inode_sus_path(path.dentry->d_inode)) {
-				int err = susfs_inode_permission(dir->d_inode, nd->flags);
-				if (err) {
-					return err;
-				}
-				return -ENOENT;
-			}
-		}
-#endif
 		if (error < 0)
 			return error;
 
@@ -5071,9 +4999,6 @@ retry:
 		goto exit;
 	}
 
-#ifdef CONFIG_KSU_SUSFS_SUS_PATH
-	lookup_flags |= LOOKUP_RENAMEAT;
-#endif
 	to = filename_parentat(newdfd, getname(newname), lookup_flags,
 				&new_path, &new_last, &new_type);
 	if (IS_ERR(to)) {
