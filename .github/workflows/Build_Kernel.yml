@@ -618,41 +618,26 @@ jobs:
         TARGET_DEVICES=$(echo "${device_list[*]}" | tr ' ' '-')
         echo "TARGET_DEVICES=$TARGET_DEVICES" >> $GITHUB_ENV
 
-    - name: 生成和创建新标签
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-          # Fetch the latest tag from GitHub (this is the latest tag based on the GitHub API)
-          LATEST_TAG=$(api repos/$REPO_OWNER/$REPO_NAME/tags --jq '.[0].name')
-          if [ -z "$LATEST_TAG" ]; then
-            LATEST_TAG="v1.5.5-r0"
-          fi
-            
-          NEW_TAG=$(echo "$LATEST_TAG" | awk -F'-r' '{suffix=$2; if (!suffix) suffix=0; suffix++; printf "%s-r%d", $1, suffix}')
-            
-          # Output the new tag to be used
-          echo "New tag: $NEW_TAG"
-            
-          # Set the new tag as an environment variable to be used in later steps
-          echo "NEW_TAG=${NEW_TAG}" >> $GITHUB_ENV
-            
-            # Create the tag in the repository
-            git tag $NEW_TAG
-            git push --tags
-
     - name: 📅 Setting date variables (设置日期变量)
       run: |
         echo "RELEASE_DATE=$(date +%Y%m%d)" >> $GITHUB_ENV
         REPO_URL="https://github.com/yspbwx2010/kernel_xiaomi_sm8250_mod.git"
         GIT_COMMIT_ID=$(git ls-remote $REPO_URL HEAD | cut -f1)
         echo "GIT_COMMIT_ID=$GIT_COMMIT_ID" >> $GITHUB_ENV
-          
+
+    - name: Create GitHub Release
+      uses: actions/create-release@v1
+      with:
+        tag_name: ${{ env.NEW_TAG }}  # Use the generated tag for the release
+        prerelease: true  # Mark the release as a pre-release
+        release_name: ${{ env.RELEASE_NAME }} # Pass the RELEASE_NAME to the action
+        body:           
     - name: 📤 Post to Release (发布到 Release)
       uses: softprops/action-gh-release@v1
       with:
         files: /home/runner/work/kernel_xiaomi_sm8250_mod/kernel_xiaomi_sm8250_mod/release/*.zip
         name: ${{ github.event.inputs.kernel_version }}
-        tag_name: ${{ env.NEW_TAG }}
+        tag_name: ${{ env.RELEASE_DATE }}
         body: |
           ### 📱kernel build information | 内核构建信息
       
@@ -664,7 +649,7 @@ jobs:
           - **构建类型:** ${{ github.event.inputs.build_type }}
           - **构建日期:** ${{ env.RELEASE_DATE }}
           - **提交ID:** ${{ env.GIT_COMMIT_ID }}
-          - **完整发行版本号:** Kernel_(${{ env.TARGET_DEVICES }})_${{ github.event.inputs.kernelsu_variant }}_${{ github.event.inputs.compiled_system }}_${{ env.RELEASE_DATE }}_${{ github.event.inputs.kernel_version }}_${{ env.GIT_COMMIT_ID }}_${{ github.event.inputs.build_type }}
+          - **完整发行版本号:** Kernel_(${{ env.TARGET_DEVICES }})_${{ github.event.inputs.compiled_system }}_${{ env.RELEASE_DATE }}_${{ github.event.inputs.kernel_version }}_${{ env.GIT_COMMIT_ID }}_${{ github.event.inputs.build_type }}
 
           ### ⏫️ 更新日志 | Update Log
           - 1.（占位符，待填写）
