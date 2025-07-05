@@ -618,6 +618,28 @@ jobs:
         TARGET_DEVICES=$(echo "${device_list[*]}" | tr ' ' '-')
         echo "TARGET_DEVICES=$TARGET_DEVICES" >> $GITHUB_ENV
 
+    - name: 生成和创建新标签
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+          # Fetch the latest tag from GitHub (this is the latest tag based on the GitHub API)
+          LATEST_TAG=$(gh api repos/$REPO_OWNER/$REPO_NAME/tags --jq '.[0].name')
+          if [ -z "$LATEST_TAG" ]; then
+            LATEST_TAG="v1.5.5-r0"
+          fi
+            
+          NEW_TAG=$(echo "$LATEST_TAG" | awk -F'-r' '{suffix=$2; if (!suffix) suffix=0; suffix++; printf "%s-r%d", $1, suffix}')
+            
+          # Output the new tag to be used
+          echo "New tag: $NEW_TAG"
+            
+          # Set the new tag as an environment variable to be used in later steps
+          echo "NEW_TAG=${NEW_TAG}" >> $GITHUB_ENV
+            
+            # Create the tag in the repository
+            git tag $NEW_TAG
+            git push --tags
+
     - name: 📅 Setting date variables (设置日期变量)
       run: |
         echo "RELEASE_DATE=$(date +%Y%m%d)" >> $GITHUB_ENV
@@ -630,7 +652,7 @@ jobs:
       with:
         files: /home/runner/work/kernel_xiaomi_sm8250_mod/kernel_xiaomi_sm8250_mod/release/*.zip
         name: ${{ github.event.inputs.kernel_version }}
-        tag_name: ${{ github.event.inputs.kernel_version }}
+        tag_name: ${{ env.NEW_TAG }}
         body: |
           ### 📱kernel build information | 内核构建信息
       
