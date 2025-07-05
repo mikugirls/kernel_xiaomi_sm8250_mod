@@ -625,13 +625,6 @@ jobs:
         GIT_COMMIT_ID=$(git ls-remote $REPO_URL HEAD | cut -f1)
         echo "GIT_COMMIT_ID=$GIT_COMMIT_ID" >> $GITHUB_ENV
 
-    - name: Create GitHub Release
-      uses: actions/create-release@v1
-      with:
-        tag_name: ${{ env.NEW_TAG }}  # Use the generated tag for the release
-        prerelease: true  # Mark the release as a pre-release
-        release_name: ${{ env.RELEASE_NAME }} # Pass the RELEASE_NAME to the action
-        body:           
     - name: 📤 Post to Release (发布到 Release)
       uses: softprops/action-gh-release@v1
       with:
