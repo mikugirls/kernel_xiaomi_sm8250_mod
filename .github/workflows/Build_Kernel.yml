@@ -10,6 +10,7 @@ on:
         description: 'target device (目标设备)'
         required: true
         type: choice
+        default: 'all'
         options:
           - 'lmi'
           - 'cmi'
@@ -140,7 +141,7 @@ jobs:
       - name: 📥 Cloning kernel source code （克隆内核源码）
         run: |
           echo "正在克隆内核源码..."
-          git clone https://github.com/cctv18/kernel_xiaomi_sm8250_mod.git --depth=1 $KERNEL_SOURCE
+          git clone https://github.com/mikugirls/kernel_xiaomi_sm8250_mod.git --depth=1 $KERNEL_SOURCE
           echo "✅ Kernel source code cloning complete (内核源码克隆完成)"
 
       - name: 📥 Caching toolchain (缓存工具链)
@@ -196,7 +197,7 @@ jobs:
           
           echo "⚙️  Version: $KSU_VARIANT ( 版本: $KSU_VARIANT)"
           
-          curl -LSs "https://raw.githubusercontent.com/ShirkNeko/SukiSU-Ultra/susfs-main/kernel/setup.sh" | bash -s susfs-main
+          curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/susfs-main/kernel/setup.sh" | bash -s susfs-main
           
           echo "✅ $KSU_VARIANT configuration complete ($KSU_VARIANT 配置完成)"
 
@@ -209,7 +210,7 @@ jobs:
             cd $KERNEL_SOURCE
             echo 'source "utils/Kconfig"' >> "Kconfig"
             rm -rf utils
-            git clone https://github.com/cctv18/lxc-docker-support-for-android.git utils
+            git clone https://github.com/mikugirls/lxc-docker-support-for-android.git utils
  
             echo "CONFIG_DOCKER=y" >> arch/arm64/configs/${DEVICE}_defconfig
  
@@ -217,7 +218,7 @@ jobs:
             echo "# CONFIG_ANDROID_PARANOID_NETWORK is not set" >> arch/arm64/configs/${DEVICE}_defconfig
  
             #sed -i '/CONFIG_LOCALVERSION/d' arch/arm64/configs/${DEVICE}_defconfig
-            #echo 'CONFIG_LOCALVERSION="-LXC--support_Pdx"' >> arch/arm64/configs/${DEVICE}_defconfig
+            #echo 'CONFIG_LOCALVERSION="-LXC-support_Pdx"' >> arch/arm64/configs/${DEVICE}_defconfig
  
             chmod +x $KERNEL_SOURCE/utils/runcpatch.sh
  
@@ -250,7 +251,7 @@ jobs:
           patch -p1 -F 3 < 50_add_susfs_in_kernel-4.19.patch || true
           
           #内核钩子补丁：
-          git clone https://github.com/ShirkNeko/SukiSU_patch.git
+          git clone https://github.com/SukiSU-Ultra/SukiSU_patch.git
           cp ./SukiSU_patch/4.19/ksu_hooks_sukisu_4.19.patch ./
           patch -p1 -F 3 < ksu_hooks_sukisu_4.19.patch || true
           
@@ -472,8 +473,8 @@ jobs:
               echo "🔧 设置自定义内核版本: $VERSION"
               sed -i "s/-dirty/-$VERSION/g" scripts/setlocalversion
           else
-              echo "🔧 使用默认版本后缀: -Yun"
-              sed -i "s/-dirty/-Yun/g" scripts/setlocalversion
+              echo "🔧 使用默认版本后缀"
+              sed -i "s/-dirty//g" scripts/setlocalversion
           fi
 
           FULL_VERSION="$VERSION"
@@ -519,7 +520,7 @@ jobs:
           #if [ "$KSU_VARIANT" == "SukiSU-Ultra" ] && [ "$KPM_ENABLE" == "enable" ]; then
             echo "🛠️ 正在修补 Image 文件..."
             cd "$KERNEL_SOURCE/out/arch/arm64/boot"
-            curl -LSs "https://raw.githubusercontent.com/ShirkNeko/SukiSU_patch/refs/heads/main/kpm/patch_linux" -o patch
+            curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU_patch/refs/heads/main/kpm/patch_linux" -o patch
             chmod 777 patch
             ./patch
             if [ $? -eq 0 ]; then
